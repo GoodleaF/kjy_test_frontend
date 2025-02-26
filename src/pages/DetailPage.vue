@@ -1,63 +1,75 @@
 <template>
     <div>
-      <h1>Board Components</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Idx</th>
-            <th>Title</th>
-            <th>Content</th>
-            <th>Writer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="component in components" :key="component.idx">
-            <td>{{ component.idx }}</td>
-            <td>{{ component.title }}</td>
-            <td>{{ component.content }}</td>
-            <td>{{ component.writer }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <h1>제목: {{ board.title }}</h1>
+      <p>내용: {{ board.content }}</p>
+      <p>작성자: {{ board.writer }}</p>
+      
+      <h2>댓글</h2>
+      <ul>
+        <li v-for="comment in board.comments" :key="comment.idx">
+          <p>
+            <strong>{{ comment.writer }}:</strong> {{ comment.content }}
+          </p>
+        </li>
+      </ul>
+      
+      <hr />
+      <h2>댓글 등록</h2>
+      <form @submit.prevent="registerComment">
+        <div>
+          <label for="commentWriter">작성자:</label>
+          <input type="text" id="commentWriter" v-model="newComment.writer" required />
+        </div>
+        <div>
+          <label for="commentContent">내용:</label>
+          <textarea id="commentContent" v-model="newComment.content" required></textarea>
+        </div>
+        <button type="submit">댓글 작성</button>
+      </form>
     </div>
   </template>
   
   <script>
+  import api from '@/api';
+  
   export default {
     data() {
       return {
-        components: []
+        board: {
+          comments: []
+        },
+        newComment: {
+          writer: '',
+          content: ''
+        }
       };
     },
-    created() {
-      this.fetchComponents();
+    mounted() {
+      this.fetchBoard();
     },
     methods: {
-      async fetchComponents() {
+      async fetchBoard() {
+        const boardId = this.$route.params.id;
         try {
-          const response = await fetch('https://your-backend-api.com/components');
-          const data = await response.json();
-          this.components = data;
+          const response = await api.get(`/board/${boardId}`);
+          this.board = response.data;
         } catch (error) {
-          console.error('Error fetching components:', error);
+          console.error('Error fetching board details:', error);
+        }
+      },
+      async registerComment() {
+        const boardId = this.$route.params.id;
+        try {
+          await api.post(`/board/${boardId}/register`, this.newComment);
+          alert('댓글 작성 완료');
+          this.fetchBoard();
+          this.newComment.writer = '';
+          this.newComment.content = '';
+        } catch (error) {
+          console.error('댓글 작성 실패:', error);
         }
       }
     }
   };
   </script>
   
-  <style scoped>
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
-  
-  th {
-    background-color: #f2f2f2;
-  }
-  </style>
