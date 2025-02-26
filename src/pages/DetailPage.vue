@@ -26,6 +26,7 @@
         </div>
         <button type="submit">댓글 작성</button>
       </form>
+      <router-link to="/">게시판으로 돌아가기</router-link>
     </div>
   </template>
   
